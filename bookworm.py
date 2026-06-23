@@ -30,65 +30,21 @@ from nltk.tokenize import sent_tokenize
 
 #from nlp.io import load_book_text, read_cache, write_cache
 
+#import entities
+from STOPWORDS import STOPWORDS
 
+from entities import entities
+from info import info
+from lexdiv import lexdiv
+from similar import similar
+from topic import topic
+from summary import summary
 
 STOPWORDS_NTLK = set(stopwords.words('english'))
 
-STOPWORDS = {
+#################
 
-    "had", "to", "that", "very", "few", "were", "a", "an", "the", "in", "on", "of", "and", "or", "is", "was",
-
-    "o","i","ii","iii","iv","v","vi","vii","viii","ix","x","xi","xii","xiii","xiv","xv","xvi","xvii","xviii","xix","xx",
-
-    "oh", "ah", "alas", "hurrah", "eh", "well", "yes", "no", "hello", "please",
-
-    "this", "these", "those", "each", "every", "all", "any", "both", "some", "such", "no", "nor", "not", "other", "another",
-
-    "i", "me", "my", "myself", "we", "our", "ours", "ourselves", "you", "your", "yours", "yourself", "yourselves",
-
-    "he", "him", "his", "himself", "she", "her", "hers", "herself", "it", "its", "itself", "they", "them",
-
-    "their", "theirs", "themselves", "what", "which", "who", "whom", "whose",
-
-    "about", "above", "after", "against", "along", "among", "around", "at", "before", "behind", "below",
-
-    "beneath", "beside", "between", "beyond", "by", "down", "during", "except", "for", "from", "inside",
-
-    "into", "near", "off", "out", "outside", "over", "past", "through", "throughout", "till", "toward",
-
-    "towards", "under", "underneath", "until", "up", "upon", "with", "within", "without", "but", "because",
-
-    "as", "while", "again", "further", "then", "once", "so", "than",
-
-    "am", "are", "be", "been", "being", "have", "has", "having", "do", "does", "did", "doing", "can",
-
-    "could", "will", "would", "shall", "should", "may", "might", "must",
-
-    "only", "too", "just", "now", "here", "there", "when", "where", "why", "how", "own", "same",
-
-    "don't", "can't", "won't", "isn't", "aren't", "wasn't", "weren't", "haven't", "hasn't", "hadn't",
-
-    "doesn't", "didn't", "shouldn't", "couldn't", "wouldn't", "mustn't", "shan't", "it's", "i'm",
-
-    "you're", "he's", "she's", "we're", "they're", "i've", "you've", "we've", "they've", "i'd",
-
-    "you'd", "he'd", "she'd", "we'd", "they'd", "i'll", "you'll", "he'll", "she'll", "we'll", "they'll",
-
-    's', 't', 'll', 'd', 'm', 've', 're',
-
-    "dont", "cant", "wont", "isnt", "arent", "wasnt", "werent", "havent", "hasnt", "hadnt",
-
-    "doesnt", "didnt", "shouldnt", "couldnt", "wouldnt", "mustnt", "shant", "its", "im",
-
-    "youre", "hes", "shes", "were", "theyre", "ive", "youve", "weve", "theyve", "id",
-
-    "youd", "hed", "shed", "wed", "theyd", "ill", "youll", "hell", "shell", "well", "theyll",
-
-    "monsieur", "madame", "mme", "mille", "mlle", "lord", "lady", "count", "comte", "marquis", "duchesse", "abbé", "monseigneur", "sir"
-
-}
-
-
+#################
 def stop_word(fichier_entree: str):
 
     token = []
@@ -106,7 +62,9 @@ def stop_word(fichier_entree: str):
                 token.append(cleaned)
 
     return token
+#################
 
+#################
 
 def extract_top_words(lines: list[str], n: int = 10) -> list[str]:
 
@@ -119,7 +77,9 @@ def extract_top_words(lines: list[str], n: int = 10) -> list[str]:
     return [word for word, count in top_n]
 
 
-#########################--NETTOYAGE--############################################################
+#################
+
+#################
 
 def dl_book(id):
     filename = f"book_{id}.txt"
@@ -151,7 +111,9 @@ def dl_book(id):
         sys.exit(1)
 
 
-#####
+#################
+
+#################
 def top_down(id:int):
 
     with open(f"book_{id}.txt", "r", encoding="utf-8") as f:
@@ -188,7 +150,9 @@ def top_down(id:int):
 
         f.writelines(texte_final)
 
-######
+#################
+
+#################
 
 def sent_tok(id: int):
     input_file = f"{id}_td.txt"
@@ -260,10 +224,7 @@ def sent_tok(id: int):
         f.write("\n".join(cleaned_sentences))
     
     
-
 ######
-
-
 
 ######
 
@@ -287,8 +248,9 @@ def is_section(line):
     return any(re.match(pattern, line) for pattern in patterns)
 
 
-############################--personnages et location--#########################################################
+#################
 
+#################
 def get_wordnet_pos(treebank_tag):
 
     """Convertit les tags Penn Treebank en formats lisibles par le WordNetLemmatizer"""
@@ -313,430 +275,23 @@ def get_wordnet_pos(treebank_tag):
 
         return wordnet.NOUN  # Par défaut, on considère les mots comme des noms pour la lemmatisation
 
+#################
 
+#################
 
 def supprimer_doublons_ordonne(liste_avec_doublons):
 
     return list(dict.fromkeys(liste_avec_doublons))
 
 
-
 def supprimer_doublons_again(liste_avec_doublons):
 
     return list(set(liste_avec_doublons))
         
-#######################################################################################################
-
-def info(id:int):  
-
-
-    found_book = False
-
-    with open('pg_catalog.csv', mode = 'r', encoding = 'utf-8') as fichier:
-
-        read_csv = csv.DictReader(fichier)
-
-        for ligne in read_csv:
-
-            if ligne['Text#'] == str(id):
-
-                info_book = {
-
-                    'id': ligne['Text#'],
-
-                    'title': ligne['Title'],
-
-                    'authors': ligne['Authors'],
-
-                    'bookshelves': ligne['Bookshelves']
-
-                   }
-                return info_book 
-
-                found_book = True
-
-                break
-
-    if not found_book:
-
-        print(f"error: no book found with ID#{id}.")
-
-        sys.exit(1)
-
-
 
 #################
 
-def lexdiv(id:int) -> dict[str,int|float]:
-    with open(f"{id}_td.txt", "r", encoding="utf-8") as f:
-        lignes = f.read()
-    
-    lignes=re.sub(r"[^\w\s]|_", " ", lignes)
-    token=lignes.split()
-
-        #print (word)
-    tok=len(token)
-    typ=len(set(token))
-    compteur = Counter(token)
-    hap=sum(1 for freq in compteur.values() if freq == 1)
-    ttr=typ/tok if tok > 0 else 0
-    mwl=sum(len(word) for word in token) / tok if tok > 0 else 0
-    mwf=tok/typ if typ > 0 else 0
-
-    return  {"tok":tok,
-            "typ":typ,
-            "hap":hap,
-            "ttr":ttr,
-            "mwl":mwl,
-            "mwf":mwf
-            }
-
-
 #################
-
-
-def topic(id: int) -> dict[int, list[str]]:
-
-    with open(str(id) + "_td.txt", "r", encoding="utf-8") as f:
-
-        lignes = f.readlines()
-
-
-    sec ={"section":id}
-
-    return sec
-
-#################
-
-def entities(id: int):
-    #nlp = spacy.load("en_core_web_sm")
-    #nlp = spacy.load("en_core_web_lg")
-    nlp = spacy.load("en_core_web_trf")
-
-    with open(f"{id}_sent_tok.txt", "r", encoding="utf-8") as f:
-        text = f.read()
-
-    phrases = [p.strip() for p in text.split('\n') if p.strip()]
-
-    from collections import defaultdict, Counter
-    entity_votes = defaultdict(Counter)
-
-    LABELS_LIEUX = {"GPE", "LOC", "FAC"}
-    pattern_bruit = re.compile(
-        r'^(chapter|part|book|v|x|i|l|m|c|d|xv|lxvi|xliv|xxix|xxxiv|xxxix|xlix|li|v|vi|vii|viii|ix|xi|xii|xiii|xiv|xvi|xvii|xviii|xix|xx)\b',
-        re.IGNORECASE
-    )
-
-    # 1. On allège la blacklist pour autoriser les titres autonomes qui font de vrais personnages (ex: Queen, King)
-    BLACKLIST_PERSO = {
-        "duke", "prince", "princess", "constable", "principal", "guards",
-        "guardsman", "guardsmen", "musketeer", "inseparables", "post",
-        "englishman", "englishmen", "frenchman", "frenchmen", "gascon", "gascons",
-        "norman", "huguenot", "huguenots", "puritan", "jesuit", "hebrews",
-        "jew", "negro", "morbleu", "holà", "god", "satan", "antichrist", "saints",
-        "long tale", "said", "beau", "page", "preface"
-    }
-
-    BLACKLIST_LIEUX = {
-        "béarnais", "rochellais", "de la", "commissary", "church", "providence", 
-        "pale", "isle", "de tréville's", "dessessart's"
-    }
-
-    # 2. Nettoyage : On retire les vrais lieux d'ici (Festubert, La Prée, etc. n'ont rien à faire côté Perso !)
-    BLACKLIST_LIEUX_PERSO = {
-        "antoine", "dessessart", "séguier", "de cahusac", "cahusac",
-        "de laffemas", "laffemas", "de voiture", "voiture",
-        "de chevreuse", "chevreuse", "comtesse de la fère"
-    }
-
-    WHITELIST_PERSO = {
-    "athos", "porthos", "aramis",
-    "rochefort", "buckingham", "mousqueton",
-    "bonacieux", "coquenard", "king louis xiii",
-    "laporte", "marion de lorme", "de tréville",
-    "de winter"
-}
-
-
-
-
-
-
-
-    # --- ÉTAPE 1 : Collecte des votes par entité ---
-    for doc in nlp.pipe(phrases):
-        for enti in doc.ents:
-            nom_entite = enti.text.strip(" \t\n\r.,;:!?\"''""—_()[]-")
-
-            if not nom_entite or nom_entite[0].islower():
-                continue
-
-            if len(nom_entite) <= 2:
-                continue
-
-            if nom_entite.isupper() and nom_entite.lower() not in {"france", "paris", "london", "rome", "spain", "england"}:
-                continue
-
-            if pattern_bruit.match(nom_entite) or is_section(nom_entite):
-                continue
-
-            if any(char in nom_entite for char in {':', ';', '!', '?', '*', '"', ','}):
-                continue
-
-            if nom_entite.lower().startswith(("the ", "a ", "an ", "o ")):
-                mots_det = nom_entite.split()
-                if len(mots_det) > 1:
-                    nom_entite = " ".join(mots_det[1:]).strip(" \t\n\r.,;:!?\"''""—_()[]-")
-
-            while True:
-                mots_courants = nom_entite.split()
-                if mots_courants and (mots_courants[0].lower() in STOPWORDS or mots_courants[0].lower() in {"mdot", "mmdot"}):
-                    if len(mots_courants) > 1:
-                        nom_entite = " ".join(mots_courants[1:]).strip(" \t\n\r.,;:!?\"''""—_()[]-")
-                    else:
-                        break
-                else:
-                    break
-
-            if len(nom_entite) <= 2:
-                continue
-
-            mots_fin = nom_entite.split()
-            if len(mots_fin) > 1 and mots_fin[-1].islower():
-                dernier_mot_clean = mots_fin[-1].split('-')[-1]
-                if wordnet.synsets(dernier_mot_clean, pos=wordnet.VERB) or dernier_mot_clean.endswith("entered"):
-                    mots_fin.pop()
-                    nom_entite = " ".join(mots_fin).strip(" \t\n\r.,;:!?\"''""—_()[]-")
-
-            if len(nom_entite) <= 2:
-                continue
-
-            if nom_entite.lower() in STOPWORDS or nom_entite.lower() in STOPWORDS_NTLK or nom_entite.lower() in {"mdot", "mmdot"}:
-                continue
-
-            if nom_entite.lower() in {"end", "esq", "page", "preface", "chapter", "ibid", "patience", "holà", "remain", "besides", "buff", "jewel", "inn"}:
-                continue
-
-            if nom_entite.lower().startswith(("rue ", "avenue ", "boulevard ", "faubourg ")):
-                entity_votes[nom_entite]["LOC"] += 1
-                continue
-            # Dans ton check final en bas de l'ÉTAPE 1, ajoute :
-            if nom_entite.lower() in {"mass", "pardieu", "parbleu", "morbleu", "holà"}:
-                continue
-            if enti.label_ == "PERSON":
-                entity_votes[nom_entite]["PERSON"] += 1
-            elif enti.label_ in LABELS_LIEUX:
-                entity_votes[nom_entite]["LOC"] += 1
-            elif enti.label_ == "ORG":
-                entity_votes[nom_entite]["ORG"] += 1
-
-    # --- ÉTAPE 2 : Résolution sémantique et répartition perso / lieux ---
-    tt_perso = []
-    tt_lieux = []
-
-    # On dote notre référentiel des villes et localités françaises clés des Mousquetaires et d'Alice
-    VRAIS_LIEUX = {
-        "france", "paris", "london", "la rochelle", "spain", "austria",
-        "england", "brussels", "amsterdam", "rome", "calais", "boulogne",
-        "lille", "bastille", "louvre", "wonderland", "meung", "tarbes", 
-        "béarn", "amiens", "rouen", "chantilly", "bondy", "pontoise", 
-        "montdidier", "portsmouth", "tyburn", "lilliers", "armentières", 
-        "festubert", "fromelles", "charente", "notre dame", "la prée", 
-        "angoutin", "mandé", "dompierre", "perigny", "germain", "denis",
-        "saint-mandé", "croquet-ground", "caucus-race", "northumbria", "harpe", 
-        "vaugirard","béthune", "la grève", "berry", "bed of justice"
-    }
-
-    for entite, votes in entity_votes.items():
-        total_citations = sum(votes.values())
-
-        if total_citations < 2 and entite.lower() not in {
-            "alice", "wonderland", "white rabbit", "march hare", "cheshire cat", 
-            "queen of hearts", "king of hearts", "knave of hearts", "duchess"
-        }:
-            continue
-
-        label_dominant = max(votes, key=votes.get)
-        mots_ent = entite.split()
-        if not mots_ent:
-            continue
-
-        dernier_mot = mots_ent[-1].lower()
-        syns_noun = wordnet.synsets(dernier_mot, pos=wordnet.NOUN)
-        lexnames = {s.lexname() for s in syns_noun} if syns_noun else set()
-
-        # Dans ta boucle ÉTAPE 2, juste après le calcul de label_dominant :
-        if entite.lower() in WHITELIST_PERSO:
-            tt_perso.append(entite)
-            continue
-
-
-        # Forcer en PERSON si le mot final indique explicitement un être vivant ou un titre de personnage majeur
-        if label_dominant in {"LOC", "ORG"}:
-            if any(lex in {'noun.person', 'noun.animal'} for lex in lexnames) or dernier_mot in {
-                'rabbit', 'hare', 'cat', 'mouse', 'crab', 'pigeon', 'caterpillar',
-                'turtle', 'dormouse', 'musketeer', 'guardsman', 'guardsmen', 'king', 'queen', 'knave'
-            }:
-                label_dominant = "PERSON"
-
-        if label_dominant == "PERSON":
-            if len(mots_ent) == 1:
-                v_syns = wordnet.synsets(dernier_mot, pos=wordnet.VERB)
-                if v_syns and not syns_noun:
-                    continue
-                if dernier_mot in {"said", "beau", "besides", "remain", "yez", "buff"}:
-                    continue
-
-            # Validation Sémantique WordNet
-            if syns_noun and not any(lex in {'noun.person', 'noun.animal', 'noun.group'} for lex in lexnames):
-                # 🔥 SÉCURITÉ COMPOSÉS : Si l'entité contient un titre de personnage, on ne la rejette pas !
-                # Sauve d'un coup "Queen of Hearts", "King of Hearts", etc.
-                titres_autorises = {'king', 'queen', 'knave', 'duchess', 'hatter', 'caterpillar', 'rabbit', 'hare', 'cardinal', 'captain', 'count'}
-                if not any(t in [m.lower() for m in mots_ent] for t in titres_autorises):
-                    if dernier_mot not in {'majesty', 'grace', 'eminence', 'highness', 'lord', 'lady', 'footman', 'gryphon'}:
-                        continue
-
-        # Attribution stricte basée sur le label dominant final nettoyé (Bloque la contagion)
-        est_un_personnage = (label_dominant == "PERSON")
-
-        # Filet de sécurité géographique absolu (Une adresse ou un vrai lieu reste un lieu)
-        if entite.lower() in VRAIS_LIEUX or entite.lower().startswith(("rue ", "avenue ", "boulevard ", "faubourg ")):
-            est_un_personnage = False
-
-        if est_un_personnage:
-            if entite.lower() in BLACKLIST_PERSO:
-                continue
-            tt_perso.append(entite)
-        else:
-            if entite.lower() in BLACKLIST_LIEUX:
-                continue
-            if entite.lower() in BLACKLIST_LIEUX_PERSO:
-                tt_perso.append(entite)
-                continue
-            tt_lieux.append(entite)
-
-    # --- ÉTAPE 3 : Harmonisation et nettoyage final ---
-    perso_harmonises = []
-    for p in tt_perso:
-        if p.lower() == "rabbit":
-            perso_harmonises.append("White Rabbit")
-        elif p.lower() == "cat":
-            perso_harmonises.append("Cheshire Cat")
-        elif p.lower() == "hare":
-            perso_harmonises.append("March Hare")
-        else:
-            perso_harmonises.append(p)
-
-    def fusionner_variantes(liste):
-        vus = {}
-        for nom in liste:
-            cle = nom.lower()
-            if cle not in vus:
-                vus[cle] = nom
-            else:
-                if nom[0].isupper() and not vus[cle][0].isupper():
-                    vus[cle] = nom
-        liste_dedup = list(vus.values())
-
-        a_supprimer = set()
-        for i, nom_court in enumerate(liste_dedup):
-            mots_court = set(nom_court.lower().split())
-            for j, nom_long in enumerate(liste_dedup):
-                if i == j:
-                    continue
-                mots_long = set(nom_long.lower().split())
-                if mots_court < mots_long:
-                    a_supprimer.add(nom_court.lower())
-                    break
-
-        return [n for n in liste_dedup if n.lower() not in a_supprimer]
-
-    perso_clean = fusionner_variantes(supprimer_doublons_ordonne(perso_harmonises))
-    lieux_clean = fusionner_variantes(supprimer_doublons_ordonne(tt_lieux))
-
-    lieux_clean = [l.title() if l.isupper() else l for l in lieux_clean]
-
-    print(f"✅ Extraction terminée !")
-    print(f"   - {len(perso_clean)} personnages uniques trouvés.")
-    print(f"   - {len(lieux_clean)} lieux uniques trouvés.")
-
-    return {
-        "persos": perso_clean,
-        "lieux": lieux_clean
-    }
-    
-#################
-
-
-
-
-##################
-
-def summary(id :int) -> str:
-
-    sum = {"summary":id}
-
-    return sum
-
-#################
-
-def similar(id :int):  
-
-    found_book = False
-
-    with open('pg_catalog.csv', mode = 'r', encoding = 'utf-8') as fichier:
-
-        read_csv = list(csv.DictReader(fichier))
-
-        book_list=[]            
-
-        for ligne in read_csv:
-
-
-
-            if ligne['Text#'] == str(id):
-
-                info_book = {
-
-                    'id': ligne['Text#'],
-
-                    'bookshelves': ligne['Bookshelves'],
-
-                   }
-
-                found_book = True
-
-                break
-
-
-
-        if not found_book:
-
-            print(f"error: no book found with ID#{id}.")
-
-            sys.exit(1)
-
-
-
-        for i in read_csv:
-
-            if info_book['bookshelves'] == i['Bookshelves'] and i["Text#"] != info_book["id"]:
-
-                book_list.append(
-
-                    {#'id':i['Text#'],
-
-                    i['Title'],
-
-                    })
-
-               
-
-    return book_list[:5]
-
-#################
-
-
 
 def card(id :int):
 
@@ -758,8 +313,6 @@ def card(id :int):
     return rez
 
 ############################--MEME GENRE DE LIVRES--#########################################################
-
-
 
 def main():
 

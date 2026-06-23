@@ -1,0 +1,240 @@
+import re
+import spacy
+from collections import defaultdict, Counter
+from nltk.corpus import wordnet, stopwords
+from STOPWORDS import STOPWORDS
+# On rapatrie les dépendances de vocabulaire pour rendre le fichier autonome
+STOPWORDS_NTLK = set(stopwords.words('english'))
+
+def is_section(line):
+    line = line.strip().upper()
+    patterns = [
+        r"^CHAPTER\s+[IVXLCDM\d]+$",
+        r"^PART\s+[IVXLCDM\d]+$",
+        r"^BOOK\s+[IVXLCDM\d]+$",
+        r"^(M{0,4})(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})$"
+    ]
+    return any(re.match(pattern, line) for pattern in patterns)
+
+def supprimer_doublons_ordonne(liste_avec_doublons):
+    return list(dict.fromkeys(liste_avec_doublons))
+
+
+def entities(id: int):
+    # Charge le modèle Transformer lourd si installé, sinon utilise "en_core_web_lg"
+    try:
+        nlp = spacy.load("en_core_web_trf")
+    except OSError:
+        nlp = spacy.load("en_core_web_lg")
+
+    with open(f"{id}_sent_tok.txt", "r", encoding="utf-8") as f:
+        text = f.read()
+
+    phrases = [p.strip() for p in text.split('\n') if p.strip()]
+
+    entity_votes = defaultdict(Counter)
+    LABELS_LIEUX = {"GPE", "LOC", "FAC"}
+    
+    pattern_bruit = re.compile(
+        r'^(chapter|part|book|v|x|i|l|m|c|d|xv|lxvi|xliv|xxix|xxxiv|xxxix|xlix|li|v|vi|vii|viii|ix|xi|xii|xiii|xiv|xvi|xvii|xviii|xix|xx)\b',
+        re.IGNORECASE
+    )
+
+    BLACKLIST_PERSO = {
+        "duke", "prince", "princess", "constable", "principal", "guards",
+        "guardsman", "guardsmen", "musketeer", "inseparables", "post",
+        "englishman", "englishmen", "frenchman", "frenchmen", "gascon", "gascons",
+        "norman", "huguenot", "huguenots", "puritan", "jesuit", "hebrews",
+        "jew", "negro", "morbleu", "holà", "god", "satan", "antichrist", "saints",
+        "long tale", "said", "beau", "page", "preface"
+    }
+
+    BLACKLIST_LIEUX = {
+        "béarnais", "rochellais", "de la", "commissary", "church", "providence", 
+        "pale", "isle", "de tréville's", "dessessart's", "time", "mystery"
+    }
+
+    BLACKLIST_LIEUX_PERSO = {
+        "antoine", "dessessart", "séguier", "de cahusac", "cahusac",
+        "de laffemas", "laffemas", "de voiture", "voiture",
+        "de chevreuse", "chevreuse", "comtesse de la fère", "dinah"
+    }
+
+    # --- ÉTAPE 1 : Collecte ---
+    for doc in nlp.pipe(phrases):
+        for enti in doc.ents:
+            nom_entite = enti.text.strip(" \t\n\r.,;:!?\"''""—_()[]-")
+
+            if nom_entite.lower() == "queen" and "queen of hearts" in doc.text.lower():
+                nom_entite = "Queen of Hearts"
+            elif nom_entite.lower() == "king" and "king of hearts" in doc.text.lower():
+                nom_entite = "King of Hearts"
+            elif nom_entite.lower() == "knave" and "knave of hearts" in doc.text.lower():
+                nom_entite = "Knave of Hearts"
+
+            if not nom_entite or nom_entite[0].islower() or len(nom_entite) <= 2:
+                continue
+
+            if nom_entite.isupper() and nom_entite.lower() not in {"france", "paris", "london", "rome", "spain", "england"}:
+                continue
+
+            if pattern_bruit.match(nom_entite) or is_section(nom_entite):
+                continue
+
+            if any(char in nom_entite for char in {':', ';', '!', '?', '*', '"', ','}):
+                continue
+
+            if nom_entite.lower().startswith(("the ", "a ", "an ", "o ")):
+                mots_det = nom_entite.split()
+                if len(mots_det) > 1:
+                    nom_entite = " ".join(mots_det[1:]).strip(" \t\n\r.,;:!?\"''""—_()[]-")
+
+            while True:
+                mots_courants = nom_entite.split()
+                if mots_courants and (mots_courants[0].lower() in STOPWORDS or mots_courants[0].lower() in {"mdot", "mmdot"}):
+                    if len(mots_courants) > 1:
+                        nom_entite = " ".join(mots_courants[1:]).strip(" \t\n\r.,;:!?\"''""—_()[]-")
+                    else:
+                        break
+                else:
+                    break
+
+            if len(nom_entite) <= 2:
+                continue
+
+            mots_fin = nom_entite.split()
+            if len(mots_fin) > 1 and mots_fin[-1].islower():
+                dernier_mot_clean = mots_fin[-1].split('-')[-1]
+                if wordnet.synsets(dernier_mot_clean, pos=wordnet.VERB) or dernier_mot_clean.endswith("entered"):
+                    mots_fin.pop()
+                    nom_entite = " ".join(mots_fin).strip(" \t\n\r.,;:!?\"''""—_()[]-")
+
+            if nom_entite.lower() in STOPWORDS or nom_entite.lower() in STOPWORDS_NTLK:
+                continue
+
+            if nom_entite.lower().startswith(("rue ", "avenue ", "boulevard ", "faubourg ")):
+                entity_votes[nom_entite]["LOC"] += 1
+                continue
+
+            if enti.label_ == "PERSON":
+                entity_votes[nom_entite]["PERSON"] += 1
+            elif enti.label_ in LABELS_LIEUX:
+                entity_votes[nom_entite]["LOC"] += 1
+            elif enti.label_ == "ORG":
+                entity_votes[nom_entite]["ORG"] += 1
+
+    # --- ÉTAPE 2 : Répartition ---
+    tt_perso = []
+    tt_lieux = []
+
+    VRAIS_LIEUX = {
+        "france", "paris", "london", "la rochelle", "spain", "austria",
+        "england", "brussels", "amsterdam", "rome", "calais", "boulogne",
+        "lille", "bastille", "louvre", "wonderland", "meung", "tarbes", 
+        "béarn", "amiens", "rouen", "chantilly", "bondy", "pontoise", 
+        "montdidier", "portsmouth", "tyburn", "lilliers", "armentières", 
+        "festubert", "fromelles", "charente", "notre dame", "la prée", 
+        "angoutin", "mandé", "dompierre", "perigny", "germain", "denis",
+        "saint-mandé", "croquet-ground", "caucus-race", "northumbria", "harpe", "vaugirard"
+    }
+
+    for entite, votes in entity_votes.items():
+        total_citations = sum(votes.values())
+
+        if total_citations < 2 and entite.lower() not in {
+            "alice", "wonderland", "white rabbit", "march hare", "cheshire cat", 
+            "queen of hearts", "king of hearts", "knave of hearts", "duchess"
+        }:
+            continue
+
+        label_dominant = max(votes, key=votes.get)
+        mots_ent = entite.split()
+        if not mots_ent:
+            continue
+
+        dernier_mot = mots_ent[-1].lower()
+        syns_noun = wordnet.synsets(dernier_mot, pos=wordnet.NOUN)
+        lexnames = {s.lexname() for s in syns_noun} if syns_noun else set()
+
+        if label_dominant in {"LOC", "ORG"}:
+            if any(lex in {'noun.person', 'noun.animal'} for lex in lexnames) or dernier_mot in {
+                'rabbit', 'hare', 'cat', 'mouse', 'crab', 'pigeon', 'caterpillar',
+                'turtle', 'dormouse', 'musketeer', 'guardsman', 'guardsmen', 'king', 'queen', 'knave'
+            }:
+                label_dominant = "PERSON"
+
+        if label_dominant == "PERSON":
+            if len(mots_ent) == 1:
+                v_syns = wordnet.synsets(dernier_mot, pos=wordnet.VERB)
+                if v_syns and not syns_noun:
+                    continue
+            if syns_noun and not any(lex in {'noun.person', 'noun.animal', 'noun.group'} for lex in lexnames):
+                titres_autorises = {'king', 'queen', 'knave', 'duchess', 'hatter', 'caterpillar', 'rabbit', 'hare', 'cardinal', 'captain', 'count'}
+                if not any(t in [m.lower() for m in mots_ent] for t in titres_autorises):
+                    if dernier_mot not in {'majesty', 'grace', 'eminence', 'highness', 'lord', 'lady', 'footman', 'gryphon'}:
+                        continue
+
+        est_un_personnage = (label_dominant == "PERSON")
+
+        if entite.lower() in VRAIS_LIEUX or entite.lower().startswith(("rue ", "avenue ", "boulevard ", "faubourg ")):
+            est_un_personnage = False
+
+        if est_un_personnage:
+            if entite.lower() in BLACKLIST_PERSO:
+                continue
+            tt_perso.append(entite)
+        else:
+            if entite.lower() in BLACKLIST_LIEUX:
+                continue
+            if entite.lower() in BLACKLIST_LIEUX_PERSO:
+                tt_perso.append(entite)
+                continue
+            tt_lieux.append(entite)
+
+    # --- ÉTAPE 3 : Nettoyage & Fusion ---
+    perso_harmonises = []
+    for p in tt_perso:
+        if p.lower() == "rabbit":
+            perso_harmonises.append("White Rabbit")
+        elif p.lower() == "cat":
+            perso_harmonises.append("Cheshire Cat")
+        elif p.lower() == "hare":
+            perso_harmonises.append("March Hare")
+        else:
+            perso_harmonises.append(p)
+
+    def fusionner_variantes(liste):
+        vus = {}
+        for nom in liste:
+            cle = nom.lower()
+            if cle not in vus:
+                vus[cle] = nom
+            else:
+                if nom[0].isupper() and not vus[cle][0].isupper():
+                    vus[cle] = nom
+        liste_dedup = list(vus.values())
+
+        a_supprimer = set()
+        for i, nom_court in enumerate(liste_dedup):
+            mots_court = set(nom_court.lower().split())
+            for j, nom_long in enumerate(liste_dedup):
+                if i == j:
+                    continue
+                mots_long = set(nom_long.lower().split())
+                if mots_court < mots_long:
+                    a_supprimer.add(nom_court.lower())
+                    break
+        return [n for n in liste_dedup if n.lower() not in a_supprimer]
+
+    perso_clean = fusionner_variantes(supprimer_doublons_ordonne(perso_harmonises))
+    lieux_clean = fusionner_variantes(supprimer_doublons_ordonne(tt_lieux))
+    lieux_clean = [l.title() if l.isupper() else l for l in lieux_clean]
+
+    print(f"✅ Extraction terminée !")
+    print(f"   - {len(perso_clean)} personnages uniques trouvés.")
+    print(f"   - {len(lieux_clean)} lieux uniques trouvés.")
+
+    return {
+        "persos": perso_clean,
+        "lieux": lieux_clean
+    }
