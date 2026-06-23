@@ -1,3 +1,8 @@
+
+---
+
+# 🇫🇷 Version française
+
 # Bookworm - Analyseur de livres textuels
 
 Ce projet permet de rechercher, télécharger et analyser des œuvres littéraires à partir du catalogue au format `.csv` du site [Project Gutenberg](https://www.gutenberg.org).
@@ -88,3 +93,65 @@ Le code est structuré de manière modulaire pour faciliter sa maintenance et so
  - `similar.py`  
   Parcourt le catalogue local pour identifier et suggérer des livres traitant de thématiques ou de sujets similaires.
 
+
+---
+
+# 🇬🇧 English version
+
+## Bookworm - Text Book Analyzer
+
+This project allows you to search, download, and analyze literary works from the `.csv` catalog of the Project Gutenberg website.
+
+The script applies a Natural Language Processing (NLP) pipeline enabling automated analysis of literary works.
+
+## Features
+
+- Automatic download of raw text using the book ID.
+- Text cleaning (removal of Gutenberg headers and footers).
+- Tokenization into sentences and words.
+- Lexical analysis.
+- Named entity extraction.
+- Automatic summarization.
+- Topic analysis.
+- Similar works search.
+
+## Installation and requirements
+
+```bash
+pip install nltk spacy requests
+python -m spacy download en_core_web_sm
+python -m spacy download en_core_web_lg
+python -m spacy download en_core_web_trf
+python -c "import nltk; nltk.download('punkt'); nltk.download('wordnet'); nltk.download('stopwords')"
+```
+
+## Usage
+```bash
+python bookworm.py [FLAG] [BOOK_ID]
+```
+## Example
+```bash
+python bookworm.py --card 11
+```
+
+ Result:
+```text
+Generates a full analysis for: Alice's Adventures in Wonderland
+```
+## Available flags
+
+- `--lexdiv`: Computes lexical diversity...
+- `--entities`: Extracts named entities...
+- `--topic`: Extracts themes...
+- `--summary`: Generates chapter-by-chapter summary
+- `--similar`: Finds similar books
+- `--card`: Generates full book card
+
+## Project structure
+
+- `bookworm.py` : Main entry point...
+- `entities.py` : Named entity extraction...
+- `lexdiv.py` : Lexical diversity...
+- `topic.py` : Topic analysis...
+- `summary.py` : Summary generation...
+- `similar.py` : Similarity search
