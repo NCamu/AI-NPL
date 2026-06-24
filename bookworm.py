@@ -386,6 +386,10 @@ def main():
 
       print(entities(a))
 
+    elif arg.summary:
+
+      print(summary(a))  
+
     elif arg.similar:
 
       print(similar(a))

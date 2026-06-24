@@ -1,4 +1,3 @@
-
 ---
 
 # 🇫🇷 Version française
@@ -32,8 +31,11 @@ python -m spacy download en_core_web_sm
 python -m spacy download en_core_web_lg
 python -m spacy download en_core_web_trf
 python -c "import nltk; nltk.download('punkt'); nltk.download('wordnet'); nltk.download('stopwords')"
+pip install spacy pytextrank
+pip install sentence-transformers
+pip install gensim nltk
+pip install scikit-learn
 ```
-
 
 ## Utilisation
 
@@ -42,6 +44,7 @@ Lancement du projet depuis votre terminal :
 ```bash
 python bookworm.py [BALISE] [NUMERO_DU_LIVRE]
 ```
+
 ### Exemple
 
 ```bash
@@ -54,11 +57,10 @@ Résultat :
 Génère l'analyse complète pour : Alice's Adventures in Wonderland
 ```
 
-
 ## Balises disponibles
 
 Chaque balise exécute un filtre ou une analyse spécifique sur le texte préalablement tokenisé :
- 
+
 - `--lexdiv` : Calcule la diversité lexicale en analysant le ratio entre le nombre de tokens uniques (le vocabulaire) et le nombre total de mots.
 
 - `--entities` : Extrait et liste les entités nommées majeures de l'œuvre, classées en deux catégories distinctes : les personnages et les lieux.
@@ -70,29 +72,28 @@ Chaque balise exécute un filtre ou une analyse spécifique sur le texte préala
 - `--similar` : Parcourt le catalogue local pour identifier et suggérer des livres du Project Gutenberg traitant de thématiques ou de sujets similaires.
 
 - `--card` : Génère une fiche d'identité complète (carte) du livre en combinant toutes les analyses ci-dessus, enrichie de métadonnées complémentaires.
- 
 
 ## Structure du projet
+
 Le code est structuré de manière modulaire pour faciliter sa maintenance et son évolution :
 
- - `bookworm.py`  
-  Point d'entrée principal du programme, gestion des arguments de la CLI et orchestration du pipeline (téléchargement, nettoyage, tokenisation) et de la lecture des métadonnées contenues dans le catalogue CSV. 
+- `bookworm.py`  
+  Point d'entrée principal du programme, gestion des arguments de la CLI et orchestration du pipeline (téléchargement, nettoyage, tokenisation) et de la lecture des métadonnées contenues dans le catalogue CSV.
 
- - `entities.py`  
+- `entities.py`  
   Module autonome dédié au pipeline d'extraction, de vote et de filtrage des personnages et des lieux (propulsé par spaCy et WordNet).
 
- - `lexdiv.py`  
+- `lexdiv.py`  
   Calcule la diversité lexicale en analysant le ratio entre le nombre de tokens uniques (vocabulaire) et le nombre total de mots.
 
- - `topic.py`  
+- `topic.py`  
   Analyse le texte pour en extraire les thèmes principaux et sujets globaux.
 
- - `summary.py`  
+- `summary.py`  
   Génère un résumé automatique textuel détaillé, chapitre par chapitre.
 
- - `similar.py`  
+- `similar.py`  
   Parcourt le catalogue local pour identifier et suggérer des livres traitant de thématiques ou de sujets similaires.
-
 
 ---
 
@@ -123,21 +124,30 @@ python -m spacy download en_core_web_sm
 python -m spacy download en_core_web_lg
 python -m spacy download en_core_web_trf
 python -c "import nltk; nltk.download('punkt'); nltk.download('wordnet'); nltk.download('stopwords')"
+pip install spacy pytextrank
+pip install sentence-transformers
+pip install gensim nltk
+pip install scikit-learn
 ```
 
 ## Usage
+
 ```bash
 python bookworm.py [FLAG] [BOOK_ID]
 ```
+
 ## Example
+
 ```bash
 python bookworm.py --card 11
 ```
 
- Result:
+Result:
+
 ```text
 Generates a full analysis for: Alice's Adventures in Wonderland
 ```
+
 ## Available flags
 
 - `--lexdiv`: Computes lexical diversity...
