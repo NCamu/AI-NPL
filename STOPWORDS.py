@@ -23,7 +23,40 @@ STOPWORDS = {
     "doesnt", "didnt", "shouldnt", "couldnt", "wouldnt", "mustnt", "shant", "its", "im",
     "youre", "hes", "shes", "were", "theyre", "ive", "youve", "weve", "theyve", "id",
     "youd", "hed", "shed", "wed", "theyd", "ill", "youll", "hell", "shell", "well", "theyll",
-    "monsieur", "madame", "mme", "mille", "mlle", "lord", "lady", "count", "comte", "marquis", "duchesse", "abbé", "monseigneur", "sir"
+    "monsieur", "madame", "mme", "mille", "mlle", "lord", "lady", "count", "comte", "marquis", "duchesse", "abbé", "monseigneur", "sir",
+    "chapter"
 }
 
+SPE_EXCLU = {
+        "nobody", "anybody", "somebody", "someone", "everyone", "anyone",
+        "something", "anything", "everything", "nothing",
+        "lewis carroll", "shakespeare", "tell", "said", "asked", "replied", 
+        "spoke", "voice", "miss", "tarts", "tart", "soup", "wine", "tea", "bread", 
+        "butter", "herald", "preface"
+    }
 
+NARRATIVE_NOISE = [
+    # Verbes courants et leurs formes au passé / participe
+    'get', 'got', 'getting', 'make', 'made', 'making', 'go', 'went', 'going', 
+    'come', 'came', 'coming', 'take', 'took', 'taking', 'find', 'found', 'finding', 
+    'seem', 'seemed', 'seeming', 'try', 'tried', 'trying', 'begin', 'began', 'begun', 
+    'know', 'knew', 'known', 'see', 'saw', 'seen', 'look', 'looked', 'looking', 
+    'think', 'thought', 'thinking', 'tell', 'told', 'ask', 'asked', 'hear', 'heard', 
+    'put', 'give', 'gave', 'given', 'sit', 'sat', 'sitting', 'turn', 'turned', 
+    'feel', 'felt', 'keep', 'kept', 'bring', 'brought', 'leave', 'left', 'call', 'called',
+    
+    # Noms abstraits, contenants ou parties du corps ultra-fréquents
+    'thing', 'things', 'time', 'times', 'way', 'ways', 'day', 'days', 'word', 'words', 
+    'place', 'places', 'part', 'parts', 'sort', 'sorts', 'kind', 'kinds', 'bit', 'bits', 
+    'nothing', 'something', 'anything', 'everything', 'matter', 'head', 'hand', 'hands', 
+    'eye', 'eyes', 'face', 'side', 'end', 'voice',
+    
+    # Adjectifs et adverbes de remplissage / transition
+    'little', 'one', 'ones', 'two', 'three', 'like', 'good', 'long', 'great', 'old', 
+    'young', 'small', 'big', 'large', 'first', 'last', 'next', 'much', 'many', 'whole', 
+    'quite', 'rather', 'very', 'just', 'almost', 'back', 'away', 'upon', 'down', 'up', 
+    'out', 'never', 'ever', 'always', 'soon', 'suddenly', 'well', 'oh', 'ah', 'yet', 
+    'though', 'although', 'even', 'still', 'again', 'either', 'neither', 'too', 'also',
+    'shook', 'cried', 'replied', # Ajout de verbes d'action/dialogue fréquents chez Carroll
+    'said', 'says', 'say', 'go', 'went'
+]

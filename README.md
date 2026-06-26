@@ -2,7 +2,7 @@
 
 # 🇫🇷 Version française
 
-# Bookworm - Analyseur de livres textuels
+# Bookworm - Analyseur de livres textuels en CLI
 
 Ce projet permet de rechercher, télécharger et analyser des œuvres littéraires à partir du catalogue au format `.csv` du site [Project Gutenberg](https://www.gutenberg.org).
 

@@ -2,7 +2,7 @@ import re
 from collections import Counter, defaultdict
 from nltk.corpus import stopwords, wordnet
 import spacy
-from STOPWORDS import STOPWORDS
+from STOPWORDS import STOPWORDS, SPE_EXCLU
 from CLUES import PREPOSITIONS_LIEUX, TYPE_LIEUX, ORG_KEYWORDS, TITRES, SPEAK_WORD, PONCT
 
 def character_for_sure(mot):
@@ -90,15 +90,7 @@ def entities(id: int):
         re.IGNORECASE
     )
 
-    GLOBAL_EXCLUSIONS = {
-        "nobody", "anybody", "somebody", "someone", "everyone", "anyone",
-        "something", "anything", "everything", "nothing",
-        "lewis carroll", "shakespeare", "tell", "said", "asked", "replied", 
-        "spoke", "voice", "miss", "kings", "queens", "duchesses", "knaves", 
-        "lords", "ladies", "paris", "rome", "london", "france", "england", 
-        "europe", "america", "tarts", "tart", "soup", "wine", "tea", "bread", 
-        "butter", "herald", "preface"
-    }
+    GLOBAL_EXCLUSIONS = SPE_EXCLU
 
     TITRES_PERSONNAGES = TITRES
 

@@ -12,22 +12,16 @@ import os
 
 from collections import Counter , defaultdict
 
+import time
+
+
 import nltk
-
-import spacy
-
-from nltk.stem import PorterStemmer, WordNetLemmatizer
-
+#import spacy
+#from nltk.stem import PorterStemmer, WordNetLemmatizer
 from nltk.corpus import wordnet , stopwords
-
-from nltk import ne_chunk, pos_tag
-
-from nltk import word_tokenize as nltk_word_tokenize
-
-from nltk.corpus import stopwords
-
-from nltk.tokenize import sent_tokenize
-
+#from nltk import ne_chunk, pos_tag
+#from nltk import word_tokenize as nltk_word_tokenize
+#from nltk.tokenize import sent_tokenize
 #from nlp.io import load_book_text, read_cache, write_cache
 
 #import entities
@@ -314,10 +308,10 @@ def card(id :int):
     }
     return rez
 
-############################--MEME GENRE DE LIVRES--#########################################################
+############################-- MAIN --#########################################################
 
 def main():
-
+    start_time = time.perf_counter()
     parser = argparse.ArgumentParser (
 
         prog = "bookworm.py",
@@ -402,6 +396,10 @@ def main():
         sys.exit(1)
 
 
+    end_time = time.perf_counter()
+    # 3. Calcul de la différence
+    execution_time = end_time - start_time
+    print(f"\n⏱️ Temps d'exécution total : {execution_time:.2f} secondes")
 
 
 

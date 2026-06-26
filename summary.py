@@ -2,6 +2,7 @@ import os
 import sys
 import spacy
 import pytextrank
+import re
 
 def summary(id: int) -> str:
     # 1. Charger le modèle de langue français
@@ -10,6 +11,7 @@ def summary(id: int) -> str:
     except OSError:
         return "Erreur spacy"
     
+    nlp.max_length = 2000000
     # 2. Ajouter TextRank au pipeline de traitement de spaCy
     if "textrank" not in nlp.pipe_names:
         nlp.add_pipe("textrank")
@@ -20,10 +22,21 @@ def summary(id: int) -> str:
         return f"Erreur : Le fichier '{nom_fichier}' est introuvable."
     # Lecture du texte tokenisé
     with open(nom_fichier, "r", encoding="utf-8") as f:
-        texte = f.read()
+        text = f.read()
+
+    text = re.sub(r', \.', ', ', text)  # Si c'était un artefact de split
+
+    text = text.replace(',.', ', ')
+
+    # 2. On corrige le vilain 'MDOT' pour redonner son nom au Capitaine des Mousquetaires
+    text = text.replace('MDOT', 'M.')
+
+    # 3. Sécurité pour le split : on s'assure que la ponctuation est décollée des mots
+    # (Optionnel mais recommandé pour le .split() basique si tu n'utilises pas le tokenizer de spacy)
+    text = re.sub(r'([.,!?;:])', r' \1 ', text)    
     print("######## FILE LOADED ########")
     # 3. Analyser le texte
-    doc = nlp(texte)
+    doc = nlp(text)
     
     phrases_importantes = list(doc._.textrank.summary(limit_phrases=25, limit_sentences=5))
     
